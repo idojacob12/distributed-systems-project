@@ -1,0 +1,11 @@
+FROM python:3.9-slim
+
+# Install dependencies
+RUN pip install opencv-python-headless nats-py python-dotenv
+
+# Copy the application code
+WORKDIR /app
+COPY . .
+
+# Default command (can be overridden in docker-compose.yml)
+CMD ["python", "camera.py"]

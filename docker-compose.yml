@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  nats-server:
+    image: nats:latest
+    container_name: nats-server
+    ports:
+      - "4222:4222"
+
+  camera1:
+    build: .
+    container_name: camera1
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY1}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py
+
+  camera2:
+    build: .
+    container_name: camera2
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY2}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py
+
+  camera3:
+    build: .
+    container_name: camera3
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY3}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py
+
+  camera4:
+    build: .
+    container_name: camera4
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY4}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py
+
+  camera5:
+    build: .
+    container_name: camera5
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY5}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py

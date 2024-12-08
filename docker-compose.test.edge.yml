@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  nats-server:
+    image: nats:latest
+    container_name: nats-server
+    ports:
+      - "4222:4222"
+
+  camera1:
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
+    container_name: camera1
+    environment:
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY1}
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - ./video_sets:/video_sets
+      - .:/app
+    working_dir: /app
+    command: python camera.py
+
+  edge-service1:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: edge-service1
+    environment:
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python edge_processor.py
+
+  edge-service2:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: edge-service2
+    environment:
+      - NATS_URL=${NATS_URL}
+    depends_on:
+      - nats-server
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python edge_processor.py
