@@ -36,16 +36,4 @@ services:
     working_dir: /app
     command: python edge_processor.py
 
-  edge-service2:
-    build:
-      context: .
-      dockerfile: Dockerfile.edge
-    container_name: edge-service2
-    environment:
-      - NATS_URL=${NATS_URL}
-    depends_on:
-      - nats-server
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: python edge_processor.py
+

@@ -1,6 +1,7 @@
 import cv2
 import os
 import time
+import sys
 import asyncio
 import nats
 from dotenv import load_dotenv
@@ -12,6 +13,10 @@ load_dotenv()
 VIDEO_DIRECTORY = os.getenv("VIDEO_DIRECTORY")
 
 async def main():
+    async def response_handler(msg):
+        print("Received response:", msg.data.decode())
+
+
     if not VIDEO_DIRECTORY:
         print("Error: VIDEO_DIRECTORY environment variable is not set.")
         return
@@ -21,9 +26,12 @@ async def main():
     try:
         nc = await nats.connect(nats_url)
         print(f"Connected to NATS at {nats_url}. Publishing frames from {VIDEO_DIRECTORY}.")
+        sys.stdout.flush()
     except Exception as e:
         print(f"Failed to connect to NATS server: {e}")
         return
+
+    await nc.subscribe("alarm_1", cb=response_handler)
 
     try:
         # Publish frames from all videos in the video directory
@@ -36,10 +44,11 @@ async def main():
                 frame = extract_frame(curr_movie, curr_sec)
                 if frame is not None:
                     _, buffer = cv2.imencode('.jpg', frame)
-                    await nc.publish("frames", buffer.tobytes())
+                    await nc.publish("frames_group_1", buffer.tobytes(),reply="alarm_1")
                     print(f"Published frame from {filename} at {curr_sec:.1f}s.")
-                curr_sec += 0.1
-                time.sleep(0.1)  # Simulate real-time delay
+                    sys.stdout.flush()
+                curr_sec += 0.5
+                await asyncio.sleep(0.5)  # Simulate real-time delay
 
     except Exception as e:
         print(f"Error while publishing frames: {e}")
