@@ -5,7 +5,8 @@ RUN pip install opencv-python-headless nats-py python-dotenv
 
 # Copy the application code
 WORKDIR /app
-COPY . .
+COPY camera.py ./
+COPY .env ./
 
 # Default command (can be overridden in docker-compose.yml)
 CMD ["python", "camera.py"]

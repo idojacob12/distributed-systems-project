@@ -15,7 +15,7 @@ services:
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets:/video_sets
+      - ./video_sets/set_1:/video_sets/set_1
       - .:/app
     working_dir: /app
     command: python camera.py
@@ -29,7 +29,7 @@ services:
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets:/video_sets
+      - ./video_sets/set_2:/video_sets/set_2
       - .:/app
     working_dir: /app
     command: python camera.py
@@ -43,7 +43,7 @@ services:
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets:/video_sets
+      - ./video_sets/set_3:/video_sets/set_3
       - .:/app
     working_dir: /app
     command: python camera.py
@@ -57,7 +57,7 @@ services:
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets:/video_sets
+      - ./video_sets/set_4:/video_sets/set_4
       - .:/app
     working_dir: /app
     command: python camera.py
@@ -71,7 +71,7 @@ services:
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets:/video_sets
+      - ./video_sets/set_5:/video_sets/set_5
       - .:/app
     working_dir: /app
     command: python camera.py

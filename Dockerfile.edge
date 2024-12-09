@@ -7,7 +7,8 @@ RUN pip install opencv-python-headless nats-py numpy python-dotenv
 WORKDIR /app
 
 # Copy application code
-COPY . .
+COPY edge_processor.py ./
+COPY .env ./
 
 # Default command for the edge service
 CMD ["python", "edge_processor.py"]
