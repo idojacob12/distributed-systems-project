@@ -14,7 +14,9 @@ VIDEO_DIRECTORY = os.getenv("VIDEO_DIRECTORY")
 
 async def main():
     async def response_handler(msg):
-        print("Received response:", msg.data.decode())
+        if msg.data.decode() == "True":
+            print("ALARM!")
+
 
 
     if not VIDEO_DIRECTORY:
@@ -31,7 +33,7 @@ async def main():
         print(f"Failed to connect to NATS server: {e}")
         return
 
-    await nc.subscribe("alarm_1", cb=response_handler)
+    await nc.subscribe(os.getenv("Alarm_Num"), cb=response_handler)
 
     try:
         # Publish frames from all videos in the video directory
@@ -44,11 +46,11 @@ async def main():
                 frame = extract_frame(curr_movie, curr_sec)
                 if frame is not None:
                     _, buffer = cv2.imencode('.jpg', frame)
-                    await nc.publish("frames_group_1", buffer.tobytes(),reply="alarm_1")
+                    await nc.publish(os.getenv("FRAME_GROUP"), buffer.tobytes(),reply=os.getenv("Alarm_Num"))
                     print(f"Published frame from {filename} at {curr_sec:.1f}s.")
                     sys.stdout.flush()
-                curr_sec += 0.5
-                await asyncio.sleep(0.5)  # Simulate real-time delay
+                curr_sec += 2
+                await asyncio.sleep(2)  # Simulate real-time delay
 
     except Exception as e:
         print(f"Error while publishing frames: {e}")

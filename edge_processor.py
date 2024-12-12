@@ -68,10 +68,10 @@ async def process_frame(frame_data):
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         if(len(people)>0):
             print("save picture")
+            sys.stdout.flush()
             cv2.imwrite("processed_frame.jpg", image)
-
-
-
+            return "True"
+        return "False"
 
 
 async def run():
@@ -88,11 +88,11 @@ async def run():
         async def message_handler(msg):
             print(f"Received frame on subject: {msg.subject}")
             sys.stdout.flush()
-            await process_frame(msg.data)
-            await msg.respond("activate_alarm".encode())
+            alarm = await process_frame(msg.data)
+            await msg.respond(alarm.encode())
 
         # Subscribe to "frames" with a queue group "edge_processors" to load balance messages
-        await nc.subscribe("frames_group_1", cb=message_handler)
+        await nc.subscribe(os.getenv("FRAME_GROUP"), cb=message_handler)
 
         # Keep running
         await asyncio.Event().wait()
