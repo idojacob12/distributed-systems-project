@@ -3,7 +3,9 @@ video_sets/*
 
 #Ignore .idea and .vscode folders
 .idea/
+.idea/*
 .vscode/
+.vscode/*
 
 #Ignore files created during development
 processed_frame.jpg
