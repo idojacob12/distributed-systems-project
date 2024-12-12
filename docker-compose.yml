@@ -5,13 +5,19 @@ services:
     container_name: nats-server
     ports:
       - "4222:4222"
+    networks:
+      - camera_network
 
   camera1:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
     container_name: camera1
     environment:
       - VIDEO_DIRECTORY=${VIDEO_DIRECTORY1}
       - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_1
+      - Alarm_Num=Alarm_1
     depends_on:
       - nats-server
     volumes:
@@ -19,13 +25,19 @@ services:
       - .:/app
     working_dir: /app
     command: python camera.py
+    networks:
+      - camera_network
 
   camera2:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
     container_name: camera2
     environment:
       - VIDEO_DIRECTORY=${VIDEO_DIRECTORY2}
       - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_1
+      - Alarm_Num=Alarm_2
     depends_on:
       - nats-server
     volumes:
@@ -33,13 +45,19 @@ services:
       - .:/app
     working_dir: /app
     command: python camera.py
+    networks:
+      - camera_network
 
   camera3:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
     container_name: camera3
     environment:
       - VIDEO_DIRECTORY=${VIDEO_DIRECTORY3}
       - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_1
+      - Alarm_Num=Alarm_3
     depends_on:
       - nats-server
     volumes:
@@ -47,13 +65,19 @@ services:
       - .:/app
     working_dir: /app
     command: python camera.py
+    networks:
+      - camera_network
 
   camera4:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
     container_name: camera4
     environment:
       - VIDEO_DIRECTORY=${VIDEO_DIRECTORY4}
       - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_2
+      - Alarm_Num=Alarm_4
     depends_on:
       - nats-server
     volumes:
@@ -61,13 +85,19 @@ services:
       - .:/app
     working_dir: /app
     command: python camera.py
+    networks:
+      - camera_network
 
   camera5:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.camera
     container_name: camera5
     environment:
       - VIDEO_DIRECTORY=${VIDEO_DIRECTORY5}
       - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_2
+      - Alarm_Num=Alarm_5
     depends_on:
       - nats-server
     volumes:
@@ -75,3 +105,43 @@ services:
       - .:/app
     working_dir: /app
     command: python camera.py
+    networks:
+      - camera_network
+
+  edge-service1:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: edge-service1
+    environment:
+      - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_1
+    depends_on:
+      - nats-server
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python edge_processor.py
+    networks:
+      - camera_network
+
+  edge-service2:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: edge-service2
+    environment:
+      - NATS_URL=${NATS_URL}
+      - FRAME_GROUP=frames_group_2
+    depends_on:
+      - nats-server
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python edge_processor.py
+    networks:
+      - camera_network
+
+networks:
+  camera_network:
+    driver: bridge

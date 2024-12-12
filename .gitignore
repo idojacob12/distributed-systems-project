@@ -1,2 +1,9 @@
 # Ignore all video sets
 video_sets/*
+
+#Ignore .idea and .vscode folders
+.idea/
+.vscode/
+
+#Ignore files created during development
+processed_frame.jpg
