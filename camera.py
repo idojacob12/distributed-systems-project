@@ -15,7 +15,7 @@ VIDEO_DIRECTORY = os.getenv("VIDEO_DIRECTORY")
 async def main():
     async def response_handler(msg):
         if msg.data.decode() == "True":
-            print("ALARM!")
+            start_alarm()
 
 
 
@@ -85,6 +85,9 @@ def extract_frame(video_path, time_in_seconds):
     else:
         print(f"Error: Could not read frame at {time_in_seconds} seconds.")
         return None
+
+def start_alarm():
+   print("activate alarm!!")
 
 if __name__ == "__main__":
     asyncio.run(main())

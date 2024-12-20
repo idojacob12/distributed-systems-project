@@ -16,63 +16,48 @@ async def process_frame(frame_data):
     # Decode the frame
     frame = np.frombuffer(frame_data, dtype=np.uint8)
     image = cv2.imdecode(frame, cv2.IMREAD_COLOR)
-
     if image is not None:
-        # Example: Save the processed frame
-        #cv2.imwrite("processed_frame.jpg", image)
-
-
         # Load YOLO model
         net = cv2.dnn.readNet("/app/yolov2-tiny.weights", "/app/yolov2-tiny.cfg")
-
-        # Get image dimensions
+        # Get image size
         (height, width) = image.shape[:2]
-
-        # Define the neural network input
         blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
         net.setInput(blob)
-
-        # Perform forward propagation
         output_layer_name = net.getUnconnectedOutLayersNames()
         output_layers = net.forward(output_layer_name)
-
-        # Initialize list of detected people
+        # detected people array
         people = []
-
-        # Loop over the output layers
         for output in output_layers:
-            # Loop over the detections
             for detection in output:
-                # Extract the class ID and confidence of the current detection
                 scores = detection[5:]
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
-
-                # Only keep detections with a high confidence
                 if class_id == 0 and confidence > 0.5:
                     # Object detected
                     center_x = int(detection[0] * width)
                     center_y = int(detection[1] * height)
+                    # Rectangle coordinates
                     w = int(detection[2] * width)
                     h = int(detection[3] * height)
-
-                    # Rectangle coordinates
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
 
                     # Add the detection to the list of people
                     people.append((x, y, w, h))
 
-        # Draw bounding boxes around the people
-        for (x, y, w, h) in people:
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        # Draw rectangles over people
+        #for (x, y, w, h) in people:
+        #    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
         if(len(people)>0):
             print("save picture")
             sys.stdout.flush()
             cv2.imwrite("processed_frame.jpg", image)
+            people_image_array = cut_people(people,image)
+            cv2.imwrite("processed_frame.jpg", people_image_array[0])
+            is_recognized = send_to_lambda(people_image_array)
             return "True"
         return "False"
-
 
 async def run():
     if not NATS_URL:
@@ -98,6 +83,40 @@ async def run():
         await asyncio.Event().wait()
     except Exception as e:
         print(f"Failed to connect to NATS server: {e}")
+
+def cut_people(people,image):
+    cropped_people = []
+    for (x, y, w, h) in people:
+        # Crop the image using array slicing: image[y:y+h, x:x+w]
+        cropped_person = image[y:y + h, x:x + w]
+        cropped_people.append(cropped_person)
+
+    return cropped_people
+
+def send_to_lambda(people_image_array):
+    '''
+    print("in lambda")
+    sys.stdout.flush()
+    # Set your AWS credentials manually (not recommended for production)
+    aws_access_key_id = 'YOUR_ACCESS_KEY'
+    aws_secret_access_key = 'YOUR_SECRET_KEY'
+    region_name = 'us-east-1'  # Replace with your AWS region
+
+    # Initialize a session using your credentials
+    lambda_client = boto3.client('lambda', region_name=region_name,
+                                 aws_access_key_id=aws_access_key_id,
+                                 aws_secret_access_key=aws_secret_access_key)
+
+    for person in people_image_array:
+        data = {}
+        data_json = json.dumps(data)
+        response = lambda_client.invoke(
+            FunctionName='hello_world',
+            InvocationType='RequestResponse',
+            Payload=data_json
+        )
+    '''
+    return True
 
 if __name__ == "__main__":
     asyncio.run(run())
