@@ -4,6 +4,9 @@ import cv2
 import os
 import sys
 import numpy as np
+import boto3
+import json
+import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -94,12 +97,26 @@ def cut_people(people,image):
     return cropped_people
 
 def send_to_lambda(people_image_array):
+    url = "https://bctoiaozkdcwmh36s5o7du647m0iltby.lambda-url.us-east-1.on.aws/"
+    data = {
+        "key": "value"  # your data here
+    }
+
+    # Send a POST request to the Lambda URL
+    response = requests.post(url, json=data)
+
+    # Check the response
+    if response.status_code == 200:
+        print("Success:", response.json())
+    else:
+        print("Error:", response.status_code, response.text)
+
     '''
     print("in lambda")
     sys.stdout.flush()
     # Set your AWS credentials manually (not recommended for production)
-    aws_access_key_id = 'YOUR_ACCESS_KEY'
-    aws_secret_access_key = 'YOUR_SECRET_KEY'
+    aws_access_key_id = 'ASIAULRCZVITM5F2WEQS'
+    aws_secret_access_key = 'XjMfvu6iS0UJCsOWF73ER7X4Aw3K80b4IfqzkH/E'
     region_name = 'us-east-1'  # Replace with your AWS region
 
     # Initialize a session using your credentials
@@ -115,8 +132,9 @@ def send_to_lambda(people_image_array):
             InvocationType='RequestResponse',
             Payload=data_json
         )
-    '''
+
     return True
+    '''
 
 if __name__ == "__main__":
     asyncio.run(run())
