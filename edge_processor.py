@@ -6,8 +6,11 @@ import sys
 import numpy as np
 import boto3
 import json
+import base64
 import requests
 from dotenv import load_dotenv
+from io import BytesIO
+from PIL import Image
 
 # Load environment variables from .env file
 load_dotenv()
@@ -97,13 +100,15 @@ def cut_people(people,image):
     return cropped_people
 
 def send_to_lambda(people_image_array):
-    url = "https://bctoiaozkdcwmh36s5o7du647m0iltby.lambda-url.us-east-1.on.aws/"
-    data = {
-        "key": "value"  # your data here
+    url = "https://griwo7cpqps4b64gd6qt3u6ogy0qfkpk.lambda-url.us-east-1.on.aws/"
+
+    people_image_base64 = [image_to_base64(image) for image in people_image_array]
+    payload = {
+        "image_data_list": people_image_base64
     }
 
     # Send a POST request to the Lambda URL
-    response = requests.post(url, json=data)
+    response = requests.post(url, json=payload)
 
     # Check the response
     if response.status_code == 200:
@@ -135,6 +140,18 @@ def send_to_lambda(people_image_array):
 
     return True
     '''
+
+def image_to_base64(image_array):
+    # Convert NumPy image array to PIL Image
+    image = Image.fromarray(image_array)
+
+    # Convert the image to a bytes-like object
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")  # You can use other formats like 'JPEG' or 'PNG'
+
+    # Encode the image in Base64
+    img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    return img_str
 
 if __name__ == "__main__":
     asyncio.run(run())
