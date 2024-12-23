@@ -11,6 +11,7 @@ import requests
 from dotenv import load_dotenv
 from io import BytesIO
 from PIL import Image
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,6 +20,7 @@ load_dotenv()
 NATS_URL = os.getenv("NATS_URL")
 
 async def process_frame(frame_data):
+
     # Decode the frame
     frame = np.frombuffer(frame_data, dtype=np.uint8)
     image = cv2.imdecode(frame, cv2.IMREAD_COLOR)
@@ -58,9 +60,12 @@ async def process_frame(frame_data):
         if(len(people)>0):
             print("save picture")
             sys.stdout.flush()
-            cv2.imwrite("processed_frame.jpg", image)
+            #cv2.imwrite("processed_frame.jpg", image)
             people_image_array = cut_people(people,image)
-            cv2.imwrite("processed_frame.jpg", people_image_array[0])
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            image_filename = f"known_faces/processed_frame_{timestamp}.jpg"
+            # Save the image with the unique filename
+            cv2.imwrite(image_filename, people_image_array[0])
             is_recognized = send_to_lambda(people_image_array)
             return "True"
         return "False"
@@ -81,6 +86,7 @@ async def run():
             sys.stdout.flush()
             alarm = await process_frame(msg.data)
             await msg.respond(alarm.encode())
+
 
         # Subscribe to "frames" with a queue group "edge_processors" to load balance messages
         await nc.subscribe(os.getenv("FRAME_GROUP"), cb=message_handler)
@@ -106,7 +112,6 @@ def send_to_lambda(people_image_array):
     payload = {
         "image_data_list": people_image_base64
     }
-
     # Send a POST request to the Lambda URL
     response = requests.post(url, json=payload)
 
