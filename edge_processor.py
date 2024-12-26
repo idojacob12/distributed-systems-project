@@ -1,4 +1,6 @@
 import asyncio
+import time
+
 import nats
 import cv2
 import os
@@ -63,11 +65,11 @@ async def process_frame(frame_data):
             #cv2.imwrite("processed_frame.jpg", image)
             people_image_array = cut_people(people,image)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            image_filename = f"known_faces/processed_frame_{timestamp}.jpg"
+            #image_filename = f"known_faces/processed_frame_{timestamp}.jpg"
             # Save the image with the unique filename
-            cv2.imwrite(image_filename, people_image_array[0])
+            #cv2.imwrite(image_filename, people_image_array[0])
             is_recognized = send_to_lambda(people_image_array)
-            return "True"
+            return is_recognized
         return "False"
 
 async def run():
@@ -118,33 +120,17 @@ def send_to_lambda(people_image_array):
     # Check the response
     if response.status_code == 200:
         print("Success:", response.json())
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        print(timestamp)
+        for image in people_image_array:
+            image_filename = f"picture_test/processed_frame_{timestamp}.jpg"
+            cv2.imwrite(image_filename, image)
+        check_list = {'status': 'unknown'}
+        if check_list in response.json():
+            return "True"
+        return "False"
     else:
         print("Error:", response.status_code, response.text)
-
-    '''
-    print("in lambda")
-    sys.stdout.flush()
-    # Set your AWS credentials manually (not recommended for production)
-    aws_access_key_id = 'ASIAULRCZVITM5F2WEQS'
-    aws_secret_access_key = 'XjMfvu6iS0UJCsOWF73ER7X4Aw3K80b4IfqzkH/E'
-    region_name = 'us-east-1'  # Replace with your AWS region
-
-    # Initialize a session using your credentials
-    lambda_client = boto3.client('lambda', region_name=region_name,
-                                 aws_access_key_id=aws_access_key_id,
-                                 aws_secret_access_key=aws_secret_access_key)
-
-    for person in people_image_array:
-        data = {}
-        data_json = json.dumps(data)
-        response = lambda_client.invoke(
-            FunctionName='hello_world',
-            InvocationType='RequestResponse',
-            Payload=data_json
-        )
-
-    return True
-    '''
 
 def image_to_base64(image_array):
     # Convert NumPy image array to PIL Image
