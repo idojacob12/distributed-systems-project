@@ -1,6 +1,5 @@
 import asyncio
 import time
-
 import nats
 import cv2
 import os
@@ -60,17 +59,14 @@ async def process_frame(frame_data):
         #    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         if(len(people)>0):
-            print("save picture")
-            sys.stdout.flush()
-            #cv2.imwrite("processed_frame.jpg", image)
-            people_image_array = cut_people(people,image)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            people_image_array = cut_people_image(people,image)
+            #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             #image_filename = f"known_faces/processed_frame_{timestamp}.jpg"
-            # Save the image with the unique filename
             #cv2.imwrite(image_filename, people_image_array[0])
             is_recognized = send_to_lambda(people_image_array)
             return is_recognized
         return "False"
+    return "False"
 
 async def run():
     if not NATS_URL:
@@ -89,7 +85,6 @@ async def run():
             alarm = await process_frame(msg.data)
             await msg.respond(alarm.encode())
 
-
         # Subscribe to "frames" with a queue group "edge_processors" to load balance messages
         await nc.subscribe(os.getenv("FRAME_GROUP"), cb=message_handler)
 
@@ -98,10 +93,20 @@ async def run():
     except Exception as e:
         print(f"Failed to connect to NATS server: {e}")
 
-def cut_people(people,image):
+def cut_people_image(people,image):
     cropped_people = []
     for (x, y, w, h) in people:
+        img_height, img_width = image.shape[:2]
         # Crop the image using array slicing: image[y:y+h, x:x+w]
+        if(x<0):
+            x=0
+        if (y<0):
+            y=0
+        if(x+w>img_width):
+            w = img_width - x-1
+        if y + h > img_height:
+            h = img_height - y-1
+
         cropped_person = image[y:y + h, x:x + w]
         cropped_people.append(cropped_person)
 
@@ -109,19 +114,17 @@ def cut_people(people,image):
 
 def send_to_lambda(people_image_array):
     url = "https://griwo7cpqps4b64gd6qt3u6ogy0qfkpk.lambda-url.us-east-1.on.aws/"
-
     people_image_base64 = [image_to_base64(image) for image in people_image_array]
     payload = {
         "image_data_list": people_image_base64
     }
-    # Send a POST request to the Lambda URL
     response = requests.post(url, json=payload)
-
-    # Check the response
     if response.status_code == 200:
         print("Success:", response.json())
+        sys.stdout.flush()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         print(timestamp)
+        sys.stdout.flush()
         for image in people_image_array:
             image_filename = f"picture_test/processed_frame_{timestamp}.jpg"
             cv2.imwrite(image_filename, image)
@@ -135,13 +138,12 @@ def send_to_lambda(people_image_array):
 def image_to_base64(image_array):
     # Convert NumPy image array to PIL Image
     image = Image.fromarray(image_array)
-
     # Convert the image to a bytes-like object
     buffered = BytesIO()
     image.save(buffered, format="PNG")  # You can use other formats like 'JPEG' or 'PNG'
-
     # Encode the image in Base64
     img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    sys.stdout.flush()
     return img_str
 
 if __name__ == "__main__":

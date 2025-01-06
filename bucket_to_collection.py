@@ -38,9 +38,9 @@ def index_faces_in_collection(bucket_name, collection_id):
             rekognition_response = rekognition.index_faces(
                 CollectionId=collection_id,
                 Image={'S3Object': {'Bucket': bucket_name, 'Name': image_key}},
-                MaxFaces=1,  # You can adjust this if you want to detect multiple faces
-                QualityFilter='AUTO',  # Automatically filter out poor quality faces
-                DetectionAttributes=['ALL']  # You can specify face attributes you want
+                MaxFaces=5,
+                QualityFilter='AUTO',
+                DetectionAttributes=['ALL']
             )
             print(f"Faces indexed from {image_key}: {len(rekognition_response['FaceRecords'])} faces added.")
         except Exception as e:

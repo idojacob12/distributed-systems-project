@@ -7,7 +7,7 @@ def list_faces_in_collection(collection_id):
     # List faces in the collection
     response = rekognition.list_faces(
         CollectionId=collection_id,
-        MaxResults=20  # You can adjust this value based on how many faces to return in one call
+        MaxResults=20
     )
 
     # Print information about the faces in the collection
@@ -21,6 +21,6 @@ def list_faces_in_collection(collection_id):
     else:
         print("No faces found in the collection.")
 
-# Example usage
+
 collection_id = 'known_faces_collection'  # The ID of your collection
 list_faces_in_collection(collection_id)

@@ -49,8 +49,8 @@ async def main():
                     await nc.publish(os.getenv("FRAME_GROUP"), buffer.tobytes(),reply=os.getenv("Alarm_Num"))
                     print(f"Published frame from {filename} at {curr_sec:.1f}s.")
                     sys.stdout.flush()
-                curr_sec += 2
-                await asyncio.sleep(2)  # Simulate real-time delay
+                curr_sec += 5
+                await asyncio.sleep(5)  # Simulate real-time delay
 
     except Exception as e:
         print(f"Error while publishing frames: {e}")
@@ -87,7 +87,7 @@ def extract_frame(video_path, time_in_seconds):
         return None
 
 def start_alarm():
-   print("activate alarm!!")
+   print("Activate Alarm!!")
 
 if __name__ == "__main__":
     asyncio.run(main())
