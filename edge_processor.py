@@ -42,27 +42,16 @@ async def process_frame(frame_data):
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
                 if class_id == 0 and confidence > 0.5:
-                    # Object detected
                     center_x = int(detection[0] * width)
                     center_y = int(detection[1] * height)
-                    # Rectangle coordinates
                     w = int(detection[2] * width)
                     h = int(detection[3] * height)
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
-
-                    # Add the detection to the list of people
                     people.append((x, y, w, h))
-
-        # Draw rectangles over people
-        #for (x, y, w, h) in people:
-        #    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         if(len(people)>0):
             people_image_array = cut_people_image(people,image)
-            #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            #image_filename = f"known_faces/processed_frame_{timestamp}.jpg"
-            #cv2.imwrite(image_filename, people_image_array[0])
             is_recognized = send_to_lambda(people_image_array)
             return is_recognized
         return "False"
@@ -83,6 +72,8 @@ async def run():
             print(f"Received frame on subject: {msg.subject}")
             sys.stdout.flush()
             alarm = await process_frame(msg.data)
+            if(alarm == None):
+                alarm="False"
             await msg.respond(alarm.encode())
 
         # Subscribe to "frames" with a queue group "edge_processors" to load balance messages
