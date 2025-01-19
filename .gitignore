@@ -9,3 +9,6 @@ video_sets/*
 
 #Ignore files created during development
 processed_frame.jpg
+
+#Ignore .docx files
+*.docx
