@@ -14,19 +14,26 @@ services:
       dockerfile: Dockerfile.camera
     container_name: camera1
     environment:
-      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY1}
+      - VIDEO_DIRECTORY=${VIDEO_DIRECTORY5}
       - NATS_URL=${NATS_URL}
       - FRAME_GROUP=frames_group_1
-      - Alarm_Num=Alarm_1
+      - Alarm_Num=Alarm_5
     depends_on:
       - nats-server
     volumes:
-      - ./video_sets/set_1:/video_sets/set_1
+      - ./video_sets/set_5:/video_sets/set_5
       - .:/app
     working_dir: /app
     command: python camera.py
     networks:
       - camera_network
+
+
+
+
+
+
+
 
 
   edge-service1:

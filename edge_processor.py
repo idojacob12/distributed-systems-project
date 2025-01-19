@@ -38,17 +38,17 @@ async def process_frame(frame_data):
         people = []
         for output in output_layers:
             for detection in output:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                if class_id == 0 and confidence > 0.5:
-                    center_x = int(detection[0] * width)
-                    center_y = int(detection[1] * height)
-                    w = int(detection[2] * width)
-                    h = int(detection[3] * height)
-                    x = int(center_x - w / 2)
-                    y = int(center_y - h / 2)
-                    people.append((x, y, w, h))
+                detection_scores = detection[5:]
+                class_index = np.argmax(detection_scores)
+                detection_confidence = detection_scores[class_index]
+                if class_index == 0 and detection_confidence > 0.5:
+                    detection_width = int(detection[2] * width)
+                    detection_height = int(detection[3] * height)
+                    detection_center_x = int(detection[0] * width)
+                    detection_center_y = int(detection[1] * height)
+                    detection_x = int(detection_center_x - detection_width / 2)
+                    detection_y = int(detection_center_y - detection_height / 2)
+                    people.append((detection_x, detection_y, detection_width, detection_height))
 
         if(len(people)>0):
             people_image_array = cut_people_image(people,image)
@@ -116,9 +116,11 @@ def send_to_lambda(people_image_array):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         print(timestamp)
         sys.stdout.flush()
+        count=0
         for image in people_image_array:
-            image_filename = f"picture_test/processed_frame_{timestamp}.jpg"
+            image_filename = f"picture_test/processed_frame_{timestamp}_count_{count}.jpg"
             cv2.imwrite(image_filename, image)
+            count = count+1
         check_list = {'status': 'unknown'}
         if check_list in response.json():
             return "True"
@@ -127,12 +129,9 @@ def send_to_lambda(people_image_array):
         print("Error:", response.status_code, response.text)
 
 def image_to_base64(image_array):
-    # Convert NumPy image array to PIL Image
     image = Image.fromarray(image_array)
-    # Convert the image to a bytes-like object
     buffered = BytesIO()
-    image.save(buffered, format="PNG")  # You can use other formats like 'JPEG' or 'PNG'
-    # Encode the image in Base64
+    image.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
     sys.stdout.flush()
     return img_str

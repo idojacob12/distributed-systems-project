@@ -12,9 +12,12 @@ load_dotenv()
 # Get video directory from environment variables
 VIDEO_DIRECTORY = os.getenv("VIDEO_DIRECTORY")
 
+this_time = time.time()
 async def main():
     async def response_handler(msg):
         if msg.data.decode() == "True":
+            #use for analysis
+            #write_in_txt()
             start_alarm()
 
 
@@ -46,11 +49,14 @@ async def main():
                 frame = extract_frame(curr_movie, curr_sec)
                 if frame is not None:
                     _, buffer = cv2.imencode('.jpg', frame)
+                    #use for analysis
+                    #global this_time
+                    #this_time=time.time()
                     await nc.publish(os.getenv("FRAME_GROUP"), buffer.tobytes(),reply=os.getenv("Alarm_Num"))
                     print(f"Published frame from {filename} at {curr_sec:.1f}s.")
                     sys.stdout.flush()
-                curr_sec += 5
-                await asyncio.sleep(5)  # Simulate real-time delay
+                curr_sec += 1
+                await asyncio.sleep(4)  # Simulate real-time delay
 
     except Exception as e:
         print(f"Error while publishing frames: {e}")
@@ -88,6 +94,13 @@ def extract_frame(video_path, time_in_seconds):
 
 def start_alarm():
    print("Activate Alarm!!")
+
+def write_in_txt():
+    #used for analysis part
+    new_row = str(os.getenv("Alarm_Num")) + "," + str(this_time) + "," + str(time.time())
+    file_path = r"C:\Users\assaf jacob\distributed-systems-project\time_to_alarm_data.txt"
+    with open(file_path, 'a') as file:
+        file.write(new_row + '\n')
 
 if __name__ == "__main__":
     asyncio.run(main())
